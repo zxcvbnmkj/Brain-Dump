@@ -12,10 +12,8 @@ git config --global user.email 2693175110@qq.com
 ```
 git status
 ```
-- 提交暂存区的更改，-m 是 Messege 的缩写，引号中写提交内容
-git commit -m "md"
-
 - 查看工作区与暂存区的差异
+
 ```
 git diff
 ```
