@@ -8,38 +8,35 @@ git config --global user.name zhangli
 git config --global user.email 2693175110@qq.com
 ```
 ## 二、常用命令
+- 查看 ”工作区“ 与 ”暂存区“ 的状态
 ```
-# 查看'工作区'与'暂存区'的状态
 git status
-
-# 把文件添加到暂存区
-git add ./xxx.py ./yyy.py ./zzz.py
-# git add . 仅会添加当前目录下的文件，不包括子文件夹下的文件。要想把整个工程下面的文件一次性添加，执行
-git add -A
-
-# 提交暂存区的更改，-m 是 Messege 的缩写，引号中写提交内容
+```
+- 提交暂存区的更改，-m 是 Messege 的缩写，引号中写提交内容
 git commit -m "md"
 
-# 查看提交历史记录
-git log
-
-# 查看工作区与暂存区的差异
+- 查看工作区与暂存区的差异
+```
 git diff
-
-# 查看所有分支
+```
+- 查看本项目的所有分支
+```
 git branch
-
-# 查看远程分支的信息，可在 git clone 后使用
-git remote -v    # 好用！！
-# 添加远程仓库
-git remote add upstream https://github.com/original/repo.git
-# 删除远程仓库
+```
+- 查看远程分支的信息，重要！！
+```
+git remote -v
+```
+-  删除远程仓库
+```
 git remote remove origin
-
-
-# 储藏当前工作区更改
+```
+- 储藏当前工作区更改
+```
 git stash
-# 恢复 stash 到工作区
+```
+-  恢复 stash 到工作区
+```
 git stash pop
 ```
 ## 三、分支命名
@@ -157,7 +154,7 @@ git add -A
 
 ### （五）提交暂存区内容，建立永久快照，通过日志记录本次变动
 
-引号中复制对本次提交进行一个简短描述。完成后可通过 `git log` 或者编译器的 git 工作区查看提交记录
+`-m` 是 Messege 的缩写，引号中是本次提交内容的简短描述。完成后可通过 `git log` 或者编译器的 git 工作区查看提交记录。
 
 ```
 git commit -m 'init'
