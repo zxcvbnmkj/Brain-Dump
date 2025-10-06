@@ -183,7 +183,7 @@ D:\2filerj\python\python.exe
   ```
   
 
-## 四、安装 PDM
+## 五、安装 PDM
 
 1. 使用 pipx 安装 pdm 作为全局命令
 
@@ -247,7 +247,7 @@ D:\2filerj\python\python.exe
     PDM, version 2.25.9
     ```
 
-## 四、使用 PDM
+## 六、使用 PDM
 
 ### (一) 通过 PDM 新建一个“标准化”的 python 项目
 
@@ -432,5 +432,48 @@ pdm run python main.py
 
 - `pdm show <package_name>` 展示包的信息
 
-  
+## 七、格式化和错误检查工具 Ruff
+
+它由 Rust 语言编写，具有两大功能： **Formatting** 和 **Linting**
+
+把以下内容添加到 `pyprojuect.toml` 中，就可使用 Ruff
+
+```
+[tool.ruff]
+respect-gitignore = true
+target-version = "py310"  【注意对应的 python 版本】
+line-length = 120
+src = ["src"]
+
+[tool.ruff.format]
+quote-style = "single"
+
+[tool.ruff.lint]
+extend-select = [
+  "I",    # isort
+  "B",    # flake8-bugbear
+  "C4",   # flake8-comprehensions
+  "FA",   # flake8-future-annotations
+  "PGH",  # pygrep-hooks
+  "RUF",  # ruff
+  "W",    # pycodestyle
+  "UP",   # pyupgrade
+  "YTT",  # flake8-2020
+]
+extend-ignore = ["B018", "B019", "RUF018"]
+```
+
+接下来格式化代码执行
+
+```
+pdm run ruff format.
+```
+
+Lint 检查执行
+
+```
+pdm run ruff check . --fix
+```
+
+
 
