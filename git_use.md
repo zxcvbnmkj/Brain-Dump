@@ -55,12 +55,14 @@ error: src refspec main does not match any
 error: failed to push some refs to 'https://github.com/zxcvbnmkj/Brain-Dump.git'
 ```
 > **[Note：]**
+>
 > `-u` 是 `--set-upstream` 的简写，意为设置上游分支。第一次 push 时需要带上。它设置本地的 `master` 分支追踪远程的 `origin/master` 分支。若不加它，以后的每一次 push 都需要写明推送到远程仓库的哪个分支。
 3. 一般使用 `origin/main` 来指代与本地仓库当前分支相连的远程仓库分支，其格式是 `仓库名/分支名` 。
 ## 四、从远程仓库克隆代码
 ### （一）从 github 下载代码（可省略解压缩这一步）
 1. 不需要把本机公钥配置到  github 账号即可直接克隆。
 > **[Note : ]**
+>
 > 只读操作不需要配置，只有写入需要配置 SSH
 
 
@@ -70,7 +72,7 @@ git clone https://github.com/sfeng18/microtubule.git
 ```
 3. 问题解决- - -最常见的两个问题
 
-(1) 该问题是因为开启了VPN，需要关闭
+(1) 该问题是因为开启了 VPN ，需要关闭
 ```
 fatal: unable to access 'https://github.com/vexing-shusher/microtubule-dynamics-simulation.git/': LibreSSL SSL_connect: SSL_ERROR_SYSCALL in connection to github.com:443
 ```
@@ -121,6 +123,7 @@ Initialized empty Git repository in /Users/nowcoder/workspace/david_backend_loca
 可使用 `ls -la` 查看隐藏文件
 ![](https://pic-gino-prod.oss-cn-qingdao.aliyuncs.com/zhangli2025/20250926105838674-paste.png)
 > **[ Tips : ]**
+>
 > 建议等自己的项目代码写的差不多了之后，此时丢失代码会有较大损失时，再进行版本控制。没必要对控制追踪新项目，这样会会显得非常乱。
 
 ### (三) 查看当前工程各文件状态
@@ -192,6 +195,7 @@ git rebase
 git pull --rebase
 ```
 > **[ Note :  ”  关于为什么不建议使用 `pull`  “]**
+>
 > 拉取远程更新，最简单的办法就是 `git pull`，但是这样会导致远程仓库提交线产生分叉。若远程仓库和本地仓库的提交线为：
 >
 > ```
@@ -207,8 +211,8 @@ git pull --rebase
 > 若此时执行 push ，将把 M 推送到远程仓库，则远程仓库提交线为：
 > ```
 > A - B - C - M (合并提交)
->        ↘  ↗
->          D (本地更新)
+>     ↘  ↗
+>       D (本地更新)
 > ```
 > 因此，`pull` 的不足之处主要在于，它会自动 `git merge`
 > 为避免上述情况，我们需要采用 `git rebase` 来代替 `git merge`，它们两种命令都会自动把远程更新同步到本地，只是前者比后者多了一个将本次提交置于远程仓库最新提交之后的功能。这样就可得到以下提交线：
@@ -281,6 +285,7 @@ ls -la | grep .git
 rm -rf .git
 ```
 > **[ Note : ]**
+>
 > 参数 `-l` 表示长格式显示，可看到文件/文件夹更详细的信息
 > 参数 `-a` 则可显示所有文件，包括隐藏文件
 > 管道符 `|` 将前一个命令的输出，作为后一个命令的输入。
