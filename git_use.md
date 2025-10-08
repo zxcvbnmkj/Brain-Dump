@@ -89,7 +89,7 @@ git config --global http.postBuffer 524288000
 ```
 ## 五、从头开始：利用 git 管理项目并提交到远程仓库
 
-### （一）新建 `.gitignore` 文件
+### (一) 新建 `.gitignore` 文件
 
 最好在初始化 git 之前创建它，它的默认值可以设置为：
 
@@ -100,7 +100,7 @@ __pycache__/
 .ipynb_checkpoints/
 .DS_Store
 .idea/
-.log
+*.log
 #若要保留某个文件夹，但忽略其内部所有文件
 data/*
 ```
@@ -122,6 +122,7 @@ Initialized empty Git repository in /Users/nowcoder/workspace/david_backend_loca
 ```
 可使用 `ls -la` 查看隐藏文件
 ![](https://pic-gino-prod.oss-cn-qingdao.aliyuncs.com/zhangli2025/20250926105838674-paste.png)
+
 > **[ Tips : ]**
 >
 > 建议等自己的项目代码写的差不多了之后，此时丢失代码会有较大损失时，再进行版本控制。没必要对控制追踪新项目，这样会会显得非常乱。
@@ -139,7 +140,8 @@ Initialized empty Git repository in /Users/nowcoder/workspace/david_backend_loca
 git status
 ```
 
-### （四） 添加文件进暂存区
+### (四)  添加文件进暂存区
+
 - 将一个文件添加进暂存区
 ```
 git add ./aaa.py
@@ -153,7 +155,7 @@ git add ./aaa.py ./bbb.py ./ccc.json
 git add -A
 ```
 
-### （五）提交暂存区内容，建立永久快照，通过日志记录本次变动
+### (五) 提交暂存区内容，建立永久快照，通过日志记录本次变动
 
 `-m` 是 Messege 的缩写，引号中是本次提交内容的简短描述。完成后可通过 `git log` 或者编译器的 git 工作区查看提交记录。
 
@@ -161,13 +163,13 @@ git add -A
 git commit -m 'init'
 ```
 
-### （六）连接远程仓库
+### (六) 连接远程仓库
 
 ```
 git remote add origin https://github.com/zxcvbnmkj/Brain-Dump.git
 ```
 
-### （七）推送本次 commit 的内容到远程仓库
+### (七) 推送本次 commit 的内容到远程仓库
 
 - 完整形式
 
@@ -178,6 +180,37 @@ git push -u origin <本地分支名>:<远程分支名>
 ```
 git push -u origin master
 ```
+### (八)  设备认证
+
+若当前设备从未连接过自己的 github 账号，则第七步将显示需要登陆 github，但是如果只是按照提示输入账号密码，则会认证失败。这是由于 github 从2021年8月13日开始不再接受账户密码来验证 Git 操作，需要使用 Personal Access Token（个人访问令牌）来代替密码。
+
+```
+(sam2) ~/桌面/SAM2微调 git:[master]
+git push -u origin master
+Username for 'https://github.com': zxcvbnmkj
+Password for 'https://zxcvbnmkj@github.com': 	【密码已输入，只是命令行默认隐藏】
+remote: Invalid username or token. Password authentication is not supported for Git operations.
+fatal: 'https://github.com/zxcvbnmkj/MT.git/' 鉴权失败
+```
+
+登陆 github 网页后，`Settings → Developer settings(位于左侧栏最下方)`，然后选择 `Tokens (classic)`，即可生成一个令牌，它可代替密码。需注意，该令牌的内容只在第一次生成时可见，最好妥善保存一下。
+
+```
+(sam2) ~/桌面/SAM2微调 git:[master]
+git push -u origin master
+Username for 'https://github.com': zxcvbnmkj
+Password for 'https://zxcvbnmkj@github.com': 
+枚举对象中: 41, 完成.
+对象计数中: 100% (41/41), 完成.
+使用 80 个线程进行压缩
+压缩对象中: 100% (38/38), 完成.
+写入对象中: 100% (41/41), 15.69 MiB | 8.24 MiB/s, 完成.
+总共 41（差异 0），复用 0（差异 0），包复用 0
+To https://github.com/zxcvbnmkj/MT.git
+ * [new branch]      master -> master
+分支 'master' 设置为跟踪来自 'origin' 的远程分支 'master'。
+```
+
 ## 六、将远程仓库的更新同步到本地
 
 **！！！ 拉取远程更新不建议使用 `git pull`  ！！！  应当采用以下方法：**
@@ -222,19 +255,44 @@ git pull --rebase
 
 ## 七、有新更改时将其同步到远程仓库
 
-### （一）查看文件中增删改查的部分
+### (一) 查看文件中增删改查的部分
+
 在 pycharm 中按下快捷键 `ctrl + K`，即可查看。若有不必要的变动，点击回退即可。
-### （二）确认并提交需提交的文件
+
+### (二) 追踪并提交的新文件
+
 - 添加部分文件，或有新建文件需要纳入追踪
-```
-git add ./aaa.py
-git commit -m 'md'
-```
-- 自动将所有改动过的被追踪文件一次性提交
-```
-git commit -a -m 'md'
-```
-### (三) 获取远程仓库的更新到本地（见六）
+    ```
+    git add ./aaa.py
+    git commit -m 'md'
+    ```
+###  (三) 提交发生变动的已追踪文件
+
+- 若我 `add` 了一些新文件，与此同时先前已被 `add`（纳入追踪）的旧文件也发送了变动，此时进行 `commit` 只会提交新文件。输入 `git status` 会得到提示，有些文件发送了变动，可以把它们进行 `add` 处理，或者使用 `restore` 丢弃这种变动。
+
+  ```
+  尚未暂存以备提交的变更：
+    （使用 "git add <文件>..." 更新要提交的内容）
+    （使用 "git restore <文件>..." 丢弃工作区的改动）
+  	修改：     .gitignore
+  	修改：     README.md
+  	修改：     premodel/placeholder.txt
+  	修改：     "\351\270\241\350\202\213\346\226\207\344\273\266/readme.txt"	
+  ```
+
+  此时可以使用以下命令自动，自动把发送改动的已追踪文件纳入 `add`
+
+  ```
+  git add -u
+  ```
+
+- 自动将所有改动过的被追踪文件一次性提交（若没有新纳入文件，则可以执行这个一步到位）
+
+    ```
+    git commit -a -m 'md'
+    ```
+### (四) 获取远程仓库的更新到本地（见六）
+
 ```
 git fetch
 git rebase
@@ -243,7 +301,8 @@ git rebase
 ```
 git pull --rebase
 ```
-### (四)  推送
+### (五)  推送
+
 ```
 git push
 ```
@@ -373,7 +432,25 @@ remote: error: GH001: Large files detected. You may want to try Git Large File S
 ```
 git lfs version
 ```
-若未安装，则运行
+- 若未安装，则先安装 LFS
+  - Win 系统访问 https://git-lfs.github.com/
+  - Mac
+  ```
+  brew install git-lfs
+  ```
+  - Ubuntu
+  ```
+  curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
+  sudo apt-get install git-lfs
+  ```
+  - CentOS
+  ```
+  curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.rpm.sh | sudo bash
+  sudo yum install git-lfs
+  ```
+
+- 初始化 LFS
+
 ```
 git lfs install
 ```
