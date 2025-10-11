@@ -199,7 +199,7 @@ fatal: 'https://github.com/zxcvbnmkj/MT.git/' 鉴权失败
 (sam2) ~/桌面/SAM2微调 git:[master]
 git push -u origin master
 Username for 'https://github.com': zxcvbnmkj
-Password for 'https://zxcvbnmkj@github.com': 
+Password for 'https://zxcvbnmkj@github.com':
 枚举对象中: 41, 完成.
 对象计数中: 100% (41/41), 完成.
 使用 80 个线程进行压缩
@@ -277,7 +277,7 @@ git pull --rebase
   	修改：     .gitignore
   	修改：     README.md
   	修改：     premodel/placeholder.txt
-  	修改：     "\351\270\241\350\202\213\346\226\207\344\273\266/readme.txt"	
+  	修改：     "\351\270\241\350\202\213\346\226\207\344\273\266/readme.txt"
   ```
 
   此时可以使用以下命令自动，自动把发送改动的已追踪文件纳入 `add`
@@ -319,18 +319,26 @@ git rm --cached aaa.py
 git rm --cached -r directory/
 ```
 - 把该文件加入 `.gitignore` 中
-### (二) 合并两个`commit`
+### (二) 合并多个`commit` （在没有其他人有新提交打断自己提交记录时）
+#### 问题背景
 在 `git commit` 的时候只可以提交当前所在路径（可采用 `pwd` 查看）下的子文件，不能提交当前路径未能涵盖住的文件，如 `../path/file.py `。
 
 若某文件夹下全是需要提交的文件，我们一般会选择 `cd` 到该文件上，然后 `git add . + git commit -m 'md'`，对于其他路径下需要提交的文件，可以切换路径后再提交一次。由于有两次未`push`的提交，所以在推送之前需要合并多个`commit`，操作如下：
-- 最后一个数字控制合并几个commit，也可写 3 ，合并 3 分支
+#### 合并方法
+- 最后一个数字控制合并几个commit，写数字 n ，就合并 前 n 个分支
 ```
-git rebase -i HEAD ~2
+git rebase -i HEAD~3
 ```
-- 出现 vim ，把第二行的 peak 改为 s ，然后  `:wq`
-- 再次出现 vim ，这次直接`:q!`
+- 第一次出现 vim ，将列出前 n 个提交，顺序是最下面的是最新提交，只可以把新提交合并到旧提交中，不可以反过来（这样业符合 git 提交线）
+- 把除了第一行以外的 commit 行的 peak 改为 s ，然后  `:wq`。其中， peak 表示保留它作为独立分支的形式， s 表示把当前分支追加到它的提交线上的前一分支中
+- 再次出现 vim ，用于提示合并完提交版本之后是否需要修改融合提交版本的描述，一般直接`:q!`
 - 通过 `git log` 检查是否合并成功
-- 正常的提交流程，`fetch + rebase + push`
+- 如果本地仓库已经正常合并的话，接下来强制提交到远程仓库
+```
+git push -f
+```
+> [Note : ]
+> 本地仓库合并好了之后，不要再执行 `fetch + rebase` 了，`rebase` 会从远程仓库拉取记录，覆盖掉本地仓库的合并后版本。
 ### (三)删除项目的所有 `git` 信息
 - 适用情况有：
 （1）自己的git已经非常混乱想要重置；
