@@ -476,3 +476,50 @@ git tag -a v1.2.3 -m "Release version 1.2.3"
 git push origin v1.2.3
 ```
 - 其实直接在 github 网站中操作还更加简单方便，拖到程序压缩包即可上传
+
+## 十三、一个本地仓库连接多个远程仓库
+
+只要仓库别名不同就可，下面仓库 1 名字为 `origin` ，仓库 2 名字为 `zhiyuan`
+
+```
+# 连接仓库 2
+git remote add origin https://github.com/zxcvbnmkj/Brain-Dump.git
+# 连接仓库 2
+git remote add zhiyuan ssh://git@zhiyuanbiji.cn:29492/zhangli2025/essay.git
+```
+
+查看本地仓库连接的远程仓库
+
+```
+E:\brain_dump\essay>git remote -v
+origin  https://github.com/zxcvbnmkj/Brain-Dump.git (fetch)
+origin  https://github.com/zxcvbnmkj/Brain-Dump.git (push)
+zhiyuan ssh://git@zhiyuanbiji.cn:29492/zhangli2025/essay.git (fetch)
+zhiyuan ssh://git@zhiyuanbiji.cn:29492/zhangli2025/essay.git (push)
+```
+
+获取指定远程仓库的更新
+
+```
+git fetch zhiyuan
+```
+
+查看远程文件相对于本地文件的变动。M：修改；D：删除；A：新增。
+
+```
+E:\brain_dump\essay>git diff --name-status master zhiyuan/master
+A       .DS_Store
+D       .gitignore
+D       PDM.md
+D       assets/image-20251006023557493.png
+M       git_use.md
+D       java_ruoyi.md
+M       mac_skills.md
+```
+
+推送到远程指定仓库的指定分支，参数 `-f` 是忽略强制推送，本地分支会完全覆盖远程仓库
+
+```
+git push -f zhiyuan master
+```
+
