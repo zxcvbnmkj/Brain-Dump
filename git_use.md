@@ -87,6 +87,34 @@ fatal: expected flush after ref listing
 ```
 git config --global http.postBuffer 524288000
 ```
+### （二）若远程仓库有多个分支
+
+- 执行正常的克隆操作，完毕后查看下载的文件，可发现只有默认分支的代码。
+- 但其实所有分支的代码都被一同克隆下来了，只是默认本地文件夹不显示其余分支
+- `cd` 到克隆的文件夹里，查看它有哪些分支
+
+```
+E:\AgroSpec\AgroSpec-Vue>git branch -a
+* main    # 星号指示当前所在分支
+  remotes/origin/HEAD -> origin/main   #远程仓库默认分支
+  remotes/origin/main
+  remotes/origin/master
+```
+
+- 再切换进所需分支中
+
+```
+E:\AgroSpec\AgroSpec-Vue>git checkout master
+Switched to a new branch 'master'
+branch 'master' set up to track 'origin/master'.
+```
+
+- 如果不需要某个分支，可以把它删除（需保证当前没有切入进该分支）。如果无法删除，可以使用参数 `-D` 强制删除
+
+```
+git branch -d main
+```
+
 ## 五、从头开始：利用 git 管理项目并提交到远程仓库
 
 ### (一) 新建 `.gitignore` 文件
@@ -339,7 +367,34 @@ git push -f
 ```
 > [Note : ]
 > 本地仓库合并好了之后，不要再执行 `fetch + rebase` 了，`rebase` 会从远程仓库拉取记录，覆盖掉本地仓库的合并后版本。
-### (三)删除项目的所有 `git` 信息
+### (三)若合并时有冲突
+
+在执行 `git rebase` 时本应自动合并文件内容，但若对于文件的同一行中，远程和本地仓库对它有不同的修改，则 git 会判断两个文件存在冲突，不允许自动合并。与此同时，该文件中会自动标注出冲突地方来：
+
+```
+<<<<<<< HEAD
+“本地仓库的内容”
+=======
+“远程仓库的内容”
+>>>>>>> master
+```
+
+此时只需要删除一种仓库的冲突信息，以及 git 用来辅助标记的符号就好。若本地仓库的是正确的，只保留
+
+```
+“本地仓库的内容”
+```
+
+反之，只保留
+
+```
+“远程仓库的内容”
+```
+
+然后再次尝试 `git rebase` 即可
+
+### (四)删除项目的所有 `git` 信息
+
 - 适用情况有：
 （1）自己的git已经非常混乱想要重置；
 （2）对于 `git clone` 的代码，会自动保存作者的历史提交线。如果希望对该代码进行大幅改动，且改动时完全无需保存改动记录，此时可删除该项目的 `git` 。
@@ -532,5 +587,4 @@ M       mac_skills.md
 git push -f zhiyuan master
 ```
 
-=======
->>>>>>> 8eb3d96c2a25315067cc6065de9bb2a9e947c488
+如果只输入 `git push ` 只会推送到默认上游仓库（第一个绑定的）
