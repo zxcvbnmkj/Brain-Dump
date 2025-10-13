@@ -81,7 +81,7 @@ D:\2filerj\python\python.exe
    deactivate
    ```
 
-## 三、软件安装工具 [Scoop](https://scoop.sh/) 
+## 三、软件安装工具 [Scoop](https://scoop.sh/)
 
 1. 这是一个自动下载软件的程序，可快速安装，避免 GUI 界面操作，它所下载的程序都自动存放在一个文件夹中统一管理。可用于下载 `Node.JS`、`VS code` 等
 
@@ -94,7 +94,7 @@ D:\2filerj\python\python.exe
 
 3. 使用它安装 pipx
 
-   ``` 
+   ```
    scoop install pipx
    ```
 
@@ -105,13 +105,13 @@ D:\2filerj\python\python.exe
    ```
 
    因为 scoop 中未给 pipx 程序添加默认的 python 解释器导致的，解决方法是手动指定解释器位置，打开 `E:\software\Scoop\apps\pipx\current\pipx.bat` 之后，把
-   
+
    ```
    @pthon "%~dp0pipx.pyz" %*
    ```
-   
+
    改为
-   
+
    ```
    @"D:\2filerj\python\python.exe" "%~dp0pipx.pyz" %*
    ```
@@ -130,7 +130,7 @@ D:\2filerj\python\python.exe
 
 2. [pipx](https://github.com/pypa/pipx) 是一个用于在**隔离的虚拟环境**中安装和运行 python 应用程序的工具。
 
-   它相当于 Ubuntu 上的 apt ；CentOS 上的 yum；MacOS 上的 brew，都是用来下载应用程序的。 
+   它相当于 Ubuntu 上的 apt ；CentOS 上的 yum；MacOS 上的 brew，都是用来下载应用程序的。
 
    pipx 也可以和 pip 一样，从pypi、git 仓库、wheel 中构建程序，它独特的优点是会为每个 python 程序创建一个独立的虚拟环境，这样就可以避免多种 python 程序之间的版本依赖。
 
@@ -169,19 +169,19 @@ D:\2filerj\python\python.exe
   ```
   pipx --version
   ```
-  
+
 - 查看 pipx 的配置，它的数据默认存储在 C盘的用户目录下
 
   ```
   pipx environment --verbose
   ```
-  
+
 - 查看通过 pipx 安装的程序
 
   ```
   pipx list
   ```
-  
+
 
 ## 五、安装 PDM
 
@@ -204,32 +204,32 @@ D:\2filerj\python\python.exe
     ```
     PIP STDOUT
     ----------
-    
+
     PIP STDERR
     ----------
     C:\Users\zl\pipx\venvs\pdm\Scripts\python.exe: No module named pip: No module named pip
     ```
     在 pipx 的仓库主页有非常多的 issue 都提到这个问题：
-    
+
     ```
     https://github.com/pypa/pipx/issues/778 （解决办法无效）
     ```
-    
+
     - 其中提到：新版本 pipx 为了提升性能和节省空间，不再在每个虚拟环境中安装 pip。而是创建一个共享的 pip 安装（在 C:\Users\zl\pipx\shared\）
    ```
    https://github.com/pypa/pipx/issues/888 （解决办法有效）
    ```
    - 问题原因是，`python.exe` 和 `site-packages` 都位于 `C:\Users\zl\pipx\shared` 路径中，但是 pipx 在安装 pdm 程序的时候却企图去 `C:\Users\zl\pipx\venvs\pdm` 路径下寻找解释器和依赖库。当实际上，`C:\Users\zl\pipx\venvs`文件夹为空，并没有叫 `pdm` 的文件夹。
-   
+
    - 解决方法是，复制  `shared` 路径下的 `Script` 和 `Lib` 文件夹到 `envs/pdm` 文件夹下，再此执行安装 pdm 命令，显示：
-   
+
      ```
      'pdm' already seems to be installed. Not modifying existing installation in 'C:\Users\张丽\pipx\venvs\pdm'. Pass
      '--force' to force installation.
      ```
-   
+
    - 这是因为 `pdm` 文件夹已经存在了，导致 pipx 认为该程序已经安装了，此时只需要按照上面的提示，使用 `--force` 参数即可
-   
+
      ```
      $ > pipx install pdm --force
      Installing to existing venv 'pdm'
@@ -257,7 +257,7 @@ D:\2filerj\python\python.exe
       pdm new 项目名称
       ```
 
-    ``` 
+    ```
     E:\PINN> pdm new test
     Creating a pyproject.toml for PDM...
     Please enter the Python interpreter to use
@@ -338,14 +338,14 @@ pdm init
      0:00:10   Lock successful.
    Changes are written to pyproject.toml.
    Synchronizing working set with resolved packages: 6 to add, 0 to update, 0 to remove
-   
+
      v Install six 1.17.0 successful
      v Install python-dateutil 2.9.0.post0 successful
      v Install tzdata 2025.2 successful
      v Install pytz 2025.2 successful
      v Install pandas 2.3.3 successful
      v Install numpy 2.2.6 successful
-   
+
      0:00:12   All complete! 6/6
    ```
 
@@ -380,8 +380,8 @@ pdm init
    requires-python = "==3.10.*"
    readme = "README.md"
    license = {text = "MIT"}
-   
-   
+
+
    [tool.pdm]
    distribution = false
    ```
@@ -431,6 +431,7 @@ pdm run python main.py
   ```
 
 - `pdm show <package_name>` 展示包的信息
+- `pdm list --freeze`: 生成 `requirements.txt` 并把当前项目的依赖导出到其中
 
 ## 七、格式化和错误检查工具 Ruff
 
