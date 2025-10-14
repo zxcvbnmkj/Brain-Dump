@@ -414,11 +414,14 @@ rm -rf .git
 > `grep` 用于搜索，它不是命令行参数，没有 `--`
 - 对于 Windows
 文件资源管理器 --> 查看 --> 显示隐藏文件 --> 直接删除 `.git` 文件夹
-### （五）`rebase` 或者 `pull` 前本地有未提交的更改
+
+### （五）【stash】`rebase` 或者 `pull` 前本地有未提交的更改
+
 如果本地存在更改，是不允许拉取远程仓库代码的
 
 该情况需要暂存本地更改，然后合并远程仓库代码，再恢复本地更改
 ```
+# 执行完毕这一操作之后，所有未提交的更改都会消失，文件退回到上次 commit 的时候
 git stash
 git rebase  或者  git pull
 git stash pop
@@ -597,3 +600,13 @@ git push -f zhiyuan master
 ```
 
 如果只输入 `git push ` 只会推送到默认上游仓库（第一个绑定的）
+
+> [info ：]
+>
+> 对于非默认的那个远程仓库，所有的操作都需要指定该仓库的名字，否则都会操作成默认仓库
+>
+> ```
+> git fetch zhiyuan
+> git rebase zhiyuan/master 【注意写法，是 / 】
+> git push zhiyuan master
+> ```
