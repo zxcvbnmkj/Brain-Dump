@@ -1,5 +1,7 @@
 # Sphinx
+### 推荐阅读
 - [官方文档](https://www.osgeo.cn/sphinx/index.html#get-started)
+- [CSDN 的一篇不错帖子](https://blog.csdn.net/lly1122334/article/details/103970663)
 ## 一、准备工作
 创建虚拟环境
 ```
