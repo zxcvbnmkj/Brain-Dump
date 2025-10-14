@@ -414,6 +414,15 @@ rm -rf .git
 > `grep` 用于搜索，它不是命令行参数，没有 `--`
 - 对于 Windows
 文件资源管理器 --> 查看 --> 显示隐藏文件 --> 直接删除 `.git` 文件夹
+### （五）`rebase` 或者 `pull` 前本地有未提交的更改
+如果本地存在更改，是不允许拉取远程仓库代码的
+
+该情况需要暂存本地更改，然后合并远程仓库代码，再恢复本地更改
+```
+git stash
+git rebase  或者  git pull
+git stash pop
+```
 
 ## 九、通过 `Github CLI` 来避免前往网页版 github ，直接命令行操作一切
 - `GitHub CLI` 是一个命令行工具，可将拉取请求、等 GitHub 功能引入终端，使得在一个地方完成所有工作。[官方文档。](https://docs.github.com/zh/github-cli/github-cli)
