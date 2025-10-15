@@ -125,8 +125,10 @@ name: Minimal Chat
 model:
   api: chat
   configuration:
-    type: azure_openai
-    azure_deployment: gpt-35-turbo
+    type: openai
+    model: gpt-4o
+    base_url: "${env:OPENAI_API_BASE}"
+    api_key: "${env:OPENAI_API_KEY}"
   parameters:
     temperature: 0.2
     max_tokens: 1024
@@ -143,26 +145,40 @@ You are a helpful assistant.
 user:
 {{question}}
 ```
-3. 处理提示词流
+3. 4. 新建一个 `.env` 文件存放 API 秘钥，该文件不能纳入 git 控制 ！！！
 ```
-import os
-# 用于从 .env 文件加载环境变量
-from dotenv import load_dotenv
-from pathlib import Path
-from promptflow.tracing import trace
-# 用于加载和执行 .prompty 文件
-from promptflow.core import Prompty
+OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxx
+OPENAI_API_BASE=https://one-api.xxx.com/yyy
+```
+4. 处理提示词流
+```
 # 获取当前脚本文件的绝对路径的父目录
 BASE_DIR = Path(__file__).absolute().parent
 # 装饰器，用于跟踪函数执行和 AI 模型调用
 @trace
 def chat(question: str = "What's the capital of France?") -> str:
-    if "OPENAI_API_KEY" not in os.environ and "AZURE_OPENAI_API_KEY" not in os.environ:
-        # load environment variables from .env file
-        load_dotenv()
-
     prompty = Prompty.load(source=BASE_DIR / "chat.prompty")
     # trigger a llm call with the prompty obj
+    # 将调用大模型 API
     output = prompty(question=question)
     return output
+
+if __name__ == "__main__":
+    # 把 .env 文件中的值加载到环境中
+    load_dotenv()
+    # 必须先执行上面的加载代码，这两行才可能获取到值，否则只返回 None
+    openai_api_key = os.getenv("OPENAI_API_KEY")
+    print("OpenAI API Key: ", openai_api_key)
+    base = os.getenv("OPENAI_API_BASE")
+    print("OPEN_API_BASE: ", base)
+
+    from promptflow.tracing import start_trace
+    start_trace()
+    result = chat("法国的首都是哪里？")
+    print(result)
+```
+该文件的输出如下，不包括可视化网站的链接
+```
+Prompt flow service has started...
+法国的首都是**巴黎**（Paris）。巴黎位于法国的北部，是该国的政治、经济、文化和交通中心，同时也是世界著名的旅游城市，以其丰富的历史、艺术和建筑闻名，例如埃菲尔铁塔、卢浮宫、巴黎圣母院等地标性建筑。
 ```
