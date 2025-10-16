@@ -1,4 +1,6 @@
 # David
+## 使用
+右上角显示一共有三种环境：线上、测试、预发。如果没有显示出 测试 ，说明当前是测试版本！！！
 ## 前端
 ### `lang='pug'``
 简洁的缩进语法 替代 HTML 的标签闭合结构
@@ -30,4 +32,52 @@ project-root/
 │   ├── surefire-reports/                     # 单元测试报告
 │   └── *.jar                                # 打包后的可执行 JAR
 └── pom.xml                                  # 📦 Maven 项目配置依赖管理
+```
+![](https://pic-gino-prod.oss-cn-qingdao.aliyuncs.com/zhangli2025/20251015144048900-paste.png)
+- `enums` ：枚举类型，用作配置文件
+
+表现层 Web 【controller 文件夹】 这个是后端提供的 API 供前端调用
+
+数据逻辑层 Service 【service 文件夹】
+
+数据访问层 Dao
+
+数据库
+
+
+"/questions/{id}/train"，其中使用 criteriaType 对应任务类型（非常多任务都需要使用到提示词）
+
+
+该控制类内部调用了 要点提取服务函数
+```
+# 用户 id、问题 id（有前端传入的唯一变量）、提示词类型、提示词版本
+public Integer trainKeyPointExtract(Integer userId, Integer questionId, Integer type, String skill, String version)
+```
+
+
+
+前端代理配置---防止跨域的问题、简化入口
+请求网址
+http://localhost:9999/api/cts/questions/2413727/train。这是前端控制台--网络中显示的，可是9999端口是前端，8080才是后台，为什么这个API端口不是后台的端口呢
+```
+浏览器 → 前端服务器(9999) → 后端服务器(8080)
+     ↓
+用户看到9999端口 → 实际转发到8080端口
+```
+
+
+
+
+疑问：只要调用了这个接口不管结果怎么样，一定会向企业微信发送一个维度应用失败的消息
+```
+WeiXinUtils.sendText2User(Arrays.asList(user.getUsername(), "wangqiqi@nowcoder.com"), "细则应用失败(请检查该维度是否已有选中的细则)", String.format("question_id:%s\n维度:%s", question.getReferId(), criteriaSkill));
+```
+这段代码最核心的就是用来生成criteriaId（并把其他信息插入到数据库），但为什么没有返回criteriaId呢，似乎获取到criteriaId之后没有做任何操作
+
+
+Restful 是一种写法规范，不会向代码中添加新的东西
+
+Swagger 根据 RESTful 风格的后端代码自动生成后端的 API 说明文档，链接一般是
+```
+https://dev.xxx.com/swagger-ui.html#/cts-question-controller
 ```
