@@ -182,3 +182,7 @@ if __name__ == "__main__":
 Prompt flow service has started...
 法国的首都是**巴黎**（Paris）。巴黎位于法国的北部，是该国的政治、经济、文化和交通中心，同时也是世界著名的旅游城市，以其丰富的历史、艺术和建筑闻名，例如埃菲尔铁塔、卢浮宫、巴黎圣母院等地标性建筑。
 ```
+5 . 可通过命令行的形式运行
+```
+pf flow test --flow 文件名:chat --inputs question="你好"
+```
