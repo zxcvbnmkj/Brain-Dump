@@ -5,3 +5,26 @@
 ```
 python -m gpt.ai_extract.ai_extract_information --json_path ai_extract_information_large_ai_models.json --max_workers 1 --new_prompt
 ```
+
+
+## 提示词工程
+- 如何写一本电子书，解决这种复杂问题- - -**搭建工作流**
+  - **工作流**和**思维链**的区别：工作流是多次调用大模型，思维链是一次
+  - 提示词中的 system 和 user 部分的区别。
+    - system prompt 是可选的，有的模型不需要这一部分
+    - 有些大模型有缓存机制的话，会把 system 放到缓存中，因此不变的文本最好放到 system 中
+    - system 中的内容可以看做是 STAR 的情景
+
+
+
+## 实习总结
+- 认识到了提示词工程的重要性，在要点提取任务中感受最深，来之前完全忽略了
+- 在工作和生活中挖掘需求与痛点，尝试通过技术解决它
+-
+
+#### 工具
+- 知源笔记：已经放弃了使用 word 写文档和记录
+  - markdown 的痛点：（1）图片不在文档内部而是存放在单独文件夹中，发送不方便（2）手机打不开
+  - git 解决了前者问题，知源解决了后者
+- git
+-
