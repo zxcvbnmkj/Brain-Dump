@@ -52,3 +52,7 @@ range(start, stop)            # start 到 stop-1，步长1
 range(start, stop, step)      # start 到 stop-1，步长step
 ```
 `for i in range(len(my_list))` 循环次数一定等于列表长度
+
+
+
+## !对python 列表、二维列表的理解要加强
