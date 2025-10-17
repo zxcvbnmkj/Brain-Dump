@@ -1,6 +1,9 @@
 # Jinja2 与 prompty 后缀文件与 PromptFlow
 ## 一、Jinja2
 它使用**模板语法**生成动态的 HTML、XML、或者其他文本文件，Jinja2 属于 Flask 和 FastAPI 等 Web 框架中默认的模板引擎。
+
+### 为什么选择 Jinja2
+**模板语法**有很多，选择 `jinja2` 因为它在 java 和 python 两种主流语言中都可以使用
 ### 用法
 1. 安装：`pdm add Jinja2`
 2. 写好模板
