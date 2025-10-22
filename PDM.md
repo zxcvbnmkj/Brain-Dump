@@ -40,7 +40,7 @@ D:\2filerj\python\python.exe
   D:\2filerj\python\python.exe -m pip list
   ```
 
-## 二、创建虚拟环境
+## 【扩展】二、创建虚拟环境
 
 1. 创建一个文件夹，用于存放所有的虚拟环境
 
@@ -251,6 +251,8 @@ D:\2filerj\python\python.exe
 
 ### (一) 通过 PDM 新建一个“标准化”的 python 项目
 
+> PDM 用于管理软件包，它不会创建 python 解释器，它要求用户在初始化项目的时候选择一个本机已有的 python 解释器，然后创建该解释器的软链接到 `.venv` 中
+
 1.  `cd` 到想要创建项目的文件夹中，执行以下命令
 
       ```
@@ -321,6 +323,7 @@ D:\2filerj\python\python.exe
 ```
 pdm init
 ```
+完毕后只是会出现 `pyproject.toml` 和 `.venv`，并不会自动创建用 pdm 管理的包
 
 ### (三) 管理依赖
 
