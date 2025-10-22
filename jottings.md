@@ -5,8 +5,19 @@
 ```
 python -m gpt.ai_extract.ai_extract_information --json_path ai_extract_information_large_ai_models.json --max_workers 1 --new_prompt
 ```
-
-
+4. 如果遇到不符合预期的情况，python 里面完全可以抛出异常，而不是仅仅只打印问题
+```
+data_files = glob.glob(osp.join(f"{dir_name}/data", "*"))
+if not data_files:
+    raise FileNotFoundError(f"data 文件夹下没有文件")
+```
+其中，`FileNotFoundError` 是预定义的异常类型，但它不需要 import ，遇到异常时会得到：
+```
+Traceback (most recent call last):
+  File "/Users/nowcoder/BERT_Finetuning/main.py", line 181, in <module>
+    raise FileNotFoundError(f"data 文件夹下没有文件")
+FileNotFoundError: data 文件夹下没有文件
+```
 ## 提示词工程
 - 如何写一本电子书，解决这种复杂问题- - -**搭建工作流**
   - **工作流**和**思维链**的区别：工作流是多次调用大模型，思维链是一次
