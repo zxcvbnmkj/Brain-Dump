@@ -28,3 +28,4 @@ scp -P 50023 -r ubuntu@local.nowcoder.com:~/files /private/tmp/
 ```
 ## 三、问题解决
 1. finalshell 等软件若检测客户端很长时间没有动作则会自动断开连接，若在训练模型且是命令行直接训练的，没有挂载，则训练会中断掉。可以参照[以下帖子](https://blog.csdn.net/weixin_69218754/article/details/132402412)的做法，去更改服务器 SSH 的配置文件，使得每隔一段时间自动发送信息。
+2. 建议使用 nohug python xx.py 方法，这样即使终端断开也依旧不影响进程
