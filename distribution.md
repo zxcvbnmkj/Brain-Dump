@@ -59,13 +59,42 @@ else:
 - 多进程模式，每个 GPU 都有一个独立的进程
 - 使用 `torch.distributed` 库进行进程间通信，所有进程的梯度通过 `All-Reduce` 操作进行同步，效率远高于 DP
 #### 代码写法
+告诉当前进程应该使用哪张GPU，因为会启动多个进程
 ```
-# 改动1，获取进程号，用于分配GPU
+# 1，获取进程号，用于分配GPU，写在 import 语句的下方
 local_rank = int(os.environ["LOCAL_RANK"])
 ```
-运行方法
+防止每个进程的 DataLoader 会产生完全相同的数据顺序，也防止模型随机初始化部分不同进程的初始值完全一样
+- 进程0 (local_rank=0)：种子 = 1234 + 0*10 = 1234
+- 进程1 (local_rank=1)：种子 = 1234 + 1*10 = 1244
+- 进程2 (local_rank=2)：种子 = 1234 + 2*10 = 1254
 ```
-CUDA_VISIBLE_DEVICES=1,3 torchrun --nproc_per_node=2 --master_port 38588 train.py
+# 2，不同进程设置不同的随机种子
+# 设置 torch 的随机种子
+torch.manual_seed(1234 + local_rank * 10)
+# 设置 numpy 的随机种子
+np.random.seed(1234 + local_rank * 10)
+```
+运行方法: `nproc_per_node` 为卡的数量
+```
+# 显卡编号从0开始，CUDA_VISIBLE_DEVICES=1,3 说明至少 4 张卡
+CUDA_VISIBLE_DEVICES=1,3 torchrun --nproc_per_node=2 train.py
+简写：只需要指定用几张显卡就行
+torchrun --nproc-per-node=2 train.py
+```
+使得批次可以整除显卡个数，然后把全局批次大小（如64）改为单卡批次大小（若2卡，则是32）
+```
+assert args.batch_size % torch.cuda.device_count() == 0
+args.batch_size = args.batch_size // torch.cuda.device_count()
+```
+初始化
+```
+# 将进程号和GPU号对应起来
+torch.cuda.set_device(local_rank)
+# nccl 是 NVIDIA的集合通信库，专为GPU间通信优化
+dist.init_process_group(backend="nccl")
+# 方便用于后面的 .to(device)
+device = torch.device('cuda:{}'.format(local_rank))
 ```
 ### 致命缺点
 **有N个显卡，就有N个模型副本**
