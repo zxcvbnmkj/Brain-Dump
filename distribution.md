@@ -14,7 +14,6 @@ Hadoop是用来搭建集群（即以单台计算机为节点搭建的多设备�
 ### 数据并行- - -`nn.DataParallel()`
 - 单进程多线程
 - 将模型复制到多个 GPU 上，将一个批次的数据拆分后分别送入各个 GPU 进行前向和反向传播，然后在主 GPU 上汇总梯度并更新
-- 存在性能瓶颈，不推荐用于生产
 - 通过 `nvidia-smi` 查看显卡状态，可以看到是同一个进程（PID=1490362）分别占用了 2 个显卡
 ```
 +-----------------------------------------------------------------------------------------+
@@ -28,13 +27,46 @@ Hadoop是用来搭建集群（即以单台计算机为节点搭建的多设备�
 |    1   N/A  N/A   1490362      C   python                                      16052MiB |
 +-----------------------------------------------------------------------------------------+
 ```
-#### 代码写法
+#### 代码写法（只需要一步！！此外注意模型保存的时候加上额外的键`module`）
+在加载完模型并移动到显卡0，再判断是否有多个显卡，有则使用 `nn.DataParallel()` 包装模型
 ```
+model = BertForSequenceClassification.from_pretrained(
+chinese-bert-wwm", num_labels=2).to(device)
+
+if torch.cuda.device_count() > 1:
+    print(f"有 {torch.cuda.device_count()} 个GPU")
+    model = nn.DataParallel(model)
 ```
+其中，参数`device_ids` 可以指定用哪些显卡，`output_device`用于指定使用哪个显卡汇总
+```
+model = nn.DataParallel(model, device_ids=[0, 1, 2], output_device=0)
+```
+模型保存
+
+当保存经过 DataParallel 包装的模型时，其状态字典的键名会带有 module. 前缀
+```
+# 如果使用了分布式训练
+if hasattr(model, 'module'):
+    model.module.save_pretrained(f'{dir_name}/bert_classifier')
+else:
+    model.save_pretrained(f'{dir_name}/bert_classifier')
+```
+#### 缺陷
+- 该方法有点是使用非常简单，只需要一行代码，适合用于测试模型是否可以跑通。对于任何严肃的项目，都应该使用 `torch.nn.parallel.DistributedDataParallel` 来代替它，后者提供了更好的性能和真正的分布式训练能力。
+- 所有数据的拆分、损失的计算、梯度的汇总都在主GPU（output_device）上进行，导致主GPU的内存使用和计算负载远高于其他GPU，造成负载不均衡
 ### 分布式数据并行- - - `DistributedDataParallel, DDP`
 - 主流的、推荐的方案
 - 多进程模式，每个 GPU 都有一个独立的进程
 - 使用 `torch.distributed` 库进行进程间通信，所有进程的梯度通过 `All-Reduce` 操作进行同步，效率远高于 DP
+#### 代码写法
+```
+# 改动1，获取进程号，用于分配GPU
+local_rank = int(os.environ["LOCAL_RANK"])
+```
+运行方法
+```
+CUDA_VISIBLE_DEVICES=1,3 torchrun --nproc_per_node=2 --master_port 38588 train.py
+```
 ### 致命缺点
 **有N个显卡，就有N个模型副本**
 
