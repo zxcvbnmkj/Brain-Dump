@@ -52,17 +52,28 @@ else:
     model.save_pretrained(f'{dir_name}/bert_classifier')
 ```
 #### 缺陷
-- 该方法有点是使用非常简单，只需要一行代码，适合用于测试模型是否可以跑通。对于任何严肃的项目，都应该使用 `torch.nn.parallel.DistributedDataParallel` 来代替它，后者提供了更好的性能和真正的分布式训练能力。
 - 所有数据的拆分、损失的计算、梯度的汇总都在主GPU（output_device）上进行，导致主GPU的内存使用和计算负载远高于其他GPU，造成负载不均衡
+- 该方法有点是使用非常简单，只需要一行代码，适合用于测试模型是否可以跑通。对于任何严肃的项目，都应该使用 `torch.nn.parallel.DistributedDataParallel`。见 pytorch 的[官方函数文档](https://docs.pytorch.org/docs/stable/generated/torch.nn.DataParallel.html#torch.nn.DataParallel) 来代替它，后者提供了更好的性能和真正的分布式训练能力。
+
+![](https://pic-gino-prod.oss-cn-qingdao.aliyuncs.com/zhangli2025/20251024033145860-paste.png)
+
+![](https://pic-gino-prod.oss-cn-qingdao.aliyuncs.com/zhangli2025/20251024094249405-paste.png)
+
 ### 分布式数据并行- - - `DistributedDataParallel, DDP`
 - 主流的、推荐的方案
 - 多进程模式，每个 GPU 都有一个独立的进程
 - 使用 `torch.distributed` 库进行进程间通信，所有进程的梯度通过 `All-Reduce` 操作进行同步，效率远高于 DP
 #### 代码写法
+- 使用 DDP 微调 BERT 的完整代码见[链接](https://github.com/zxcvbnmkj/BERT_Finetuning)，分解的各个步骤如下
+
 告诉当前进程应该使用哪张GPU，因为会启动多个进程
 ```
 # 1，获取进程号，用于分配GPU，写在 import 语句的下方
-local_rank = int(os.environ["LOCAL_RANK"])
+local_rank = int(os.environ.get("LOCAL_RANK", 0))
+# 进程数，等于使用到了 GPU 数目
+world_size = int(os.environ.get("WORLD_SIZE", 1))
+# 当前是否主进程
+is_main_process = (local_rank == 0)
 ```
 防止每个进程的 DataLoader 会产生完全相同的数据顺序，也防止模型随机初始化部分不同进程的初始值完全一样
 - 进程0 (local_rank=0)：种子 = 1234 + 0*10 = 1234
@@ -75,6 +86,104 @@ torch.manual_seed(1234 + local_rank * 10)
 # 设置 numpy 的随机种子
 np.random.seed(1234 + local_rank * 10)
 ```
+使得批次可以整除显卡个数，然后把全局批次大小（如64）改为单卡批次大小（若2卡，则是32）
+```
+if world_size > 1:
+  assert args.batch_size % torch.cuda.device_count() == 0
+  args.batch_size = args.batch_size // torch.cuda.device_count()
+  # 将进程号和GPU号对应起来
+  torch.cuda.set_device(local_rank)
+  # nccl 是 NVIDIA的集合通信库，专为GPU间通信优化
+  dist.init_process_group(backend="nccl")
+  # 方便用于后面的 .to(device)
+  device = torch.device('cuda:{}'.format(local_rank))
+```
+数据加载器
+```
+# 这个类继承自 Dataset ,它只是以元组的形式返回输入的各个参数而已。当数据集逻辑并不复杂的时候，可以直接使用它，从而避免自定义 Dataset
+train_sample = TensorDataset(train_data['input_ids'], train_data['attention_mask'], train_data['labels'])
+# shuffle=True 不能写在 DataLoader 中，应该放在 DistributedSampler 中。
+# DistributedSampler 非常重要，它负责把全局批次（如64）随机拆分成 N 份，并保证 **每一份（每一个GPU）上面的样本不重复不缺少**
+# 分布式中不可以写 train_dataloader = DataLoader(train_sample, batch_size=args.batch_size, shuffle=True)，因为这会使每个每张显卡都训练全局批次，等于重复训练了，一批数据被训练 N 次
+train_sampler = DistributedSampler(train_sample,shuffle=True)
+train_dataloader = DataLoader(train_sample, sampler=train_sampler, batch_size=args.batch_size)
+```
+兼容 单显卡 或 CPU 的加载方式
+```
+train_sample = TensorDataset(train_data['input_ids'], train_data['attention_mask'], train_data['labels'])
+val_sample = TensorDataset(val_data['input_ids'], val_data['attention_mask'], val_data['labels'])
+if world_size >1:
+    # shuffle=True 不能写在 DataLoader 中，应该放在 DistributedSampler 中。
+    # DistributedSampler 非常重要，它负责把全局批次（如64）随机拆分成 N 份，并保证 **每一份（每一个GPU）上面的样本不重复不缺少**
+    # 分布式中不可以写 train_dataloader = DataLoader(train_sample, batch_size=args.batch_size, shuffle=True)，因为这会使每个每张显卡都训练全局批次，等于重复训练了，一批数据被训练 N 次
+    train_sampler = DistributedSampler(train_sample,shuffle=True)
+    train_dataloader = DataLoader(train_sample, sampler=train_sampler, batch_size=args.batch_size)
+    val_sampler = DistributedSampler(val_sample, shuffle=True)
+    val_dataloader = DataLoader(val_sample, sampler=train_sampler, batch_size=args.batch_size)
+else:
+    train_dataloader = DataLoader(train_sample, batch_size=args.batch_size, shuffle=True)
+    val_dataloader = DataLoader(val_sample, batch_size=args.batch_size, shuffle=True)
+```
+使用 DDP 包装模型
+```
+model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[local_rank], output_device=local_rank, find_unused_parameters=True)
+```
+在 `for epoch_i in range(epoch)` 之下使用，为新的 epoch 打乱样本
+如果不调用 `set_epoch`，每个epoch的数据顺序将完全相同
+```
+if world_size > 1:
+  train_sampler.set_epoch(epoch)
+```
+任何打印或者输入日志前，都要加一个判断当前是否主进程
+```
+if is_main_process:
+    logging.info(f"当前是第{epoch_i}轮")
+    logging.info("================训练中==================")
+```
+同步指标（在计算出 acc\p\r\f 等之后）
+```
+# 同步所有进程的指标 ，若不加则只能得到 主进程上面的批次数量数据
+if world_size > 1:
+    # 将指标转换为tensor
+    train_metrics = torch.tensor([avg_train_loss, avg_train_acc, avg_train_p, avg_train_r, avg_train_f1],
+                                 device=device)
+    # 同步
+    dist.all_reduce(train_metrics)
+    # 均值
+    train_metrics /= world_size
+    avg_train_loss, avg_train_acc, avg_train_p, avg_train_r, avg_train_f1 = train_metrics.cpu().numpy()
+```
+保存模型
+```
+if avg_val_f1 > best_f1:
+    if is_main_process:
+        logging.info(f"存储当前最佳模型，它验证集 f1 为{avg_val_f1}")
+        best_f1 = avg_val_f1
+        patient = 0
+        # 强制确保模型参数的内存布局是连续，用于防止错误 "你在保持一个非连续的张量"
+        for name, param in model.named_parameters():
+            if param is not None:
+                param.data = param.data.contiguous()
+        # 如果使用了分布式训练
+        if hasattr(model, 'module'):
+            model.module.save_pretrained(f'{dir_name}/bert_classifier')
+        else:
+            model.save_pretrained(f'{dir_name}/bert_classifier')
+else:
+    patient += 1
+if patient == max_patient:
+    break
+```
+仅主进程保存分词器
+```
+if is_main_process:
+    tokenizer.save_pretrained(f'{dir_name}/bert_classifier')
+```
+释放资源
+```
+if world_size > 1:
+    dist.destroy_process_group()
+```
 运行方法: `nproc_per_node` 为卡的数量
 ```
 # 显卡编号从0开始，CUDA_VISIBLE_DEVICES=1,3 说明至少 4 张卡
@@ -82,34 +191,18 @@ CUDA_VISIBLE_DEVICES=1,3 torchrun --nproc_per_node=2 train.py
 简写：只需要指定用几张显卡就行
 torchrun --nproc-per-node=2 train.py
 ```
-使得批次可以整除显卡个数，然后把全局批次大小（如64）改为单卡批次大小（若2卡，则是32）
-```
-assert args.batch_size % torch.cuda.device_count() == 0
-args.batch_size = args.batch_size // torch.cuda.device_count()
-```
-初始化
-```
-# 将进程号和GPU号对应起来
-torch.cuda.set_device(local_rank)
-# nccl 是 NVIDIA的集合通信库，专为GPU间通信优化
-dist.init_process_group(backend="nccl")
-# 方便用于后面的 .to(device)
-device = torch.device('cuda:{}'.format(local_rank))
-```
 ### 致命缺点
 **有N个显卡，就有N个模型副本**
 
 传统的 DataParallel 和 DistributedDataParallel 在每个GPU上都**复制完整的模型状态**，造成了巨大的内存冗余
-## Megatron-LM（实现模型并行、张量并行、流水线并行，朴素数据并行）
-pass
 
 
 ## DeepSpeed
 由微软开发的一个开源的深度学习优化库，**主要用于大模型**，和 DDP 一样属于多进程，相比起 DDP 它还进行了内存和通信优化
 ### 推荐阅读
-[官方介绍，来自微软](https://www.microsoft.com/en-us/research/blog/deepspeed-extreme-scale-model-training-for-everyone/?locale=fr-ca)
-
-
+- [官方介绍，来自微软](https://www.microsoft.com/en-us/research/blog/deepspeed-extreme-scale-model-training-for-everyone/?locale=fr-ca)
+- [deepspeed 微调 BERT 实战](https://cloud.tencent.com/developer/article/2483965)
+- [代码使用文档](https://www.deepspeed.ai/getting-started/)
 ### 内存管理技术: 零冗余优化器 (Zero Redundancy Optimizer，ZeRO)
 - **ZeRO启用到哪个阶段，完全由训练者自己选择**
 - ZeRO 的目的并非提升训练时间，而是提升空间利用率，是在**以时间换空间，即想办法节省内存**
@@ -178,7 +271,47 @@ DeepSpeed 支持三种并行方法的灵活组合——ZeRO 支持的数据并�
 - 将梯度同步的精度从 32 位大幅降低到仅用 1 位来表示，从而将通信量减少到原来的 1/32
 - 在预热阶段（训练初期，不压缩Adam）,训练后期才压缩
 - 在训练初期，大家用精确的地图（完整梯度）找方向；后期方向明确了，就只用简单的旗语（1位信号）来保持队伍整齐前进即可
-
+### 代码写法
+编写配置文件 `deepspeed_config.json`
+```
+{
+  "train_batch_size": 128,   # 全局批次大小
+  "gradient_accumulation_steps": 4,  # // 梯度累积步数
+  "optimizer": {
+    "type": "Adam",
+    "params": {
+      "lr": 0.00015,
+      "eps": 1e-8    # 数值稳定性参数
+    }
+  },
+  "scheduler": {
+    "type": "WarmupDecayLR",   // DeepSpeed 自定义的一种学习率调度器，它结合了 热身（Warmup） 和 衰减（Decay） 两个阶段
+    "params": {
+      "warmup_min_lr": 0,    // 热身起始学习率
+      "warmup_max_lr": 1.5e-4,     // 热身结束学习率
+      "warmup_num_steps": 1000,     // 热身步数
+      "warmup_type": "cosine" // 热身阶段学习率以 consine形式变化
+    }
+  },
+  "fp16": {
+    "enabled": true,   // 启用FP16训练，即混合精度学习
+    "loss_scale": 0,   // 0=动态loss scaling, 其他值=静态loss scaling
+    "loss_scale_window": 1000,    // 动态loss scaling的窗口大小
+  },
+  "zero_optimization": {
+    "stage": 2,
+    "contiguous_gradients": true,
+    "cpu_offload": true    // 是否启用 CPU 卸载
+  },
+  "gradient_clipping": 1.0,     // 梯度裁剪阈值
+}
+```
+使用 DeepSpeed 封装模型
+```
+if torch.cuda.device_count() > 1:
+    print(f"有 {torch.cuda.device_count()} 个GPU")
+    model_engine, _, _, _ = deepspeed.initialize(model=model, config_params="deepspeed_config.json")
+```
 
 ## 要点
 ### 并行方法
