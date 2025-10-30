@@ -12,6 +12,25 @@
 - 理论上，对于图片生成 AI，可以使用像素接龙，openAI 曾经有尝试过这种方法，但这种方法有缺陷，现在已经不采用，已被扩散模型代替
 ### 话题
 - 词汇表起到 word2id 的作用，BERT 的词汇表非常好找，是 `vocab.txt`，大模型的则一般是 `tokenizer.json`
+- 一个分析输入序列中有哪些 token （GPT 中的）的网站
+
+![](https://pic-gino-prod.oss-cn-qingdao.aliyuncs.com/zhangli2025/20251030105053817-paste.png)
+- Tokenizer -> Embedding -> 位置编码 -> Attention ->
+- 同一个 Token 的词向量一定是一样的，这一步不考虑多义词。经过注意力之后模型可以结合上下文判断多义词在上下文中的含义。注意力聚合上下文的词向量到本词的词向量中，聚合权重是计算本词与上下文词两两之间的相关性
+![](https://pic-gino-prod.oss-cn-qingdao.aliyuncs.com/zhangli2025/20251030110418063-paste.png)
+- 大模型只计算前文上下文词间的相关性
+- 在每一个Transformer层中有多头注意力：从不同角度判断相关性（权重），不同组的输出通过前馈网络使得维度复原
+![](https://pic-gino-prod.oss-cn-qingdao.aliyuncs.com/zhangli2025/20251030110617760-paste.png)
+![](https://pic-gino-prod.oss-cn-qingdao.aliyuncs.com/zhangli2025/20251030110829675-paste.png)
+- 堆叠多个 Transformer 层，把最后一层的最后一个 token 向量做归一化，得到下一个词的概率分别
+![](https://pic-gino-prod.oss-cn-qingdao.aliyuncs.com/zhangli2025/20251030111014971-paste.png)
+
+- 位置编码是把位置也转换为向量，转换过程可以是人工设计，也可是自动学习，位置编码将于词向量拼接
+
+![](https://pic-gino-prod.oss-cn-qingdao.aliyuncs.com/zhangli2025/20251030105733870-paste.png)
+- 研究方向
+![](https://pic-gino-prod.oss-cn-qingdao.aliyuncs.com/zhangli2025/20251030111631608-paste.png)
+
 - Transformer 采用**编码器-解码器**结构，几乎所有的大模型都基于 Transformer ，但是目前主流的大模型（GPT、LLaMA 等）结构却是**仅解码器（Dncoder-only）** 并使用**单向注意力**（只关注前文词语），因为这样更加高效。
 - BERT 以及它的变体（如 RoBERTa）则采用**仅编码器（Encoder-only）** 结构并使用**双向注意力**。因为 BERT 的核心能力是**语义理解**，它一般用于分类任务。
 ## 第三/四/五讲：山不过来，我就过去
@@ -119,14 +138,66 @@
 - 提出一种优化的 FP32 推理管道，它在 FP32 中执行所有计算，并以 BF16 精度保留模型权重，从而有效地平衡了内存效率和可重复性，并把它作为 vLLM 的补丁发布，只需更改几行代码即可使用
 - 结果（还经过一系列操作所得）：选用了 2350 亿参数的 Qwen3-235B-A22B-Instruct-2507 模型进行实验。经过 1000 次重复测试，该模型在相同输入条件下实现了 100% 的输出一致性[[1]](https://it.sohu.com/a/933907971_211762)
 
-
-
-
-
-## 智能体- - -一个非常熟悉的陌生人
-- 我可能对智能体的理论定义非常熟悉，因为它一直是导师眼里的研究热点，只要申报项目就必扯智能体，导师也总结出了一套项目申报黄金范式：普通深度学习技术（大模型不擅长的，以此作为工具）-->大模型（强调它的不足）->智能体（调用工具）->多智能体系统 MAS（通信、共识）
+## 第九讲：智能体
+- 多步骤的复杂任务中，希望让 AI 可以自己做规划，并工具实际情况调整规划
+- 可以体验的已有智能体
+![](https://pic-gino-prod.oss-cn-qingdao.aliyuncs.com/zhangli2025/20251030103755949-paste.png)
+- 智能体的结构
+![](https://pic-gino-prod.oss-cn-qingdao.aliyuncs.com/zhangli2025/20251030104124372-paste.png)
+- 大模型在开启新一轮对话之后，之前的记忆就会去除，但是智能体具有长短期记忆能力，可以存储过去的关键信息
 ### 智能体的理论定义
 ### 怎么实现，是通过低代码工具吗？
+## 第十讲：现下的语言模型是怎么做文字接龙的
+## 评估大模型的性能
+- 选择题数据集
+- 翻译任务：BLEU 指标
+- 摘要任务：ROUGE 指标
+- [语言模型竞技场](https://chat.lmsys.org/) + 得分榜 ：人工对比两个模型的输出
+- 提供标准答案之后，让大模型来判断代替人工
+- 多种任务上判断性能，[BIG-bench](2206.04615)中收集了非常多各种各样的任务
+- 验证大模型的长文本阅读能力，大海捞针方法，在一堆文档中插入一段关键信息，问大模型关于该段信息的内容
+## 大模型安全
+### 幻觉
+- 大模型幻觉问题只能缓解不能传递解决（至少在今天看来）
+- 事实查核：检查大模型输出内容是否是真实的，有 Factscore、FacTool 两种，它们是从生成文本中提取出需要验证的内容，再去网络上检索相关知识，再对比生成内容和搜索到的内容。
+  - 网上的东西也参差不齐
+  - 怎么判断哪些需要检索的，可以不准
+###
+- 替换输入内容中的，性别、种族、地域等信息之后再让大模型回答
+
+![](https://pic-gino-prod.oss-cn-qingdao.aliyuncs.com/zhangli2025/20251030114833503-paste.png)
+- 训练另一个模型去刺激大模型，训练过程中该模型学习差距最大化的情况
+![](https://pic-gino-prod.oss-cn-qingdao.aliyuncs.com/zhangli2025/20251030115210938-paste.png)
+- 彭博社实验，让大模型去筛选简历，让它对简历排序，重复一千次，发现确实是会有偏好，而且可能会和人类社会的刻板印象不一样，比如某个大模型认为白人女性最适合从事软件开发工作
+- 把大量姓名词嵌入后再降到 2 维，得到的散点图存在不同种族名字聚集情况，可能是偏见来源
+- 大模型的刻板印象，让它给幼儿园老师写一封信，大模型默认使用 Miss，如果是建筑工程，则默认是男性
+![](https://pic-gino-prod.oss-cn-qingdao.aliyuncs.com/zhangli2025/20251030115924058-paste.png)
+- 大模型的政治倾向，大部分模型的政治画像是偏自由主义
+![](https://pic-gino-prod.oss-cn-qingdao.aliyuncs.com/zhangli2025/20251030120137052-paste.png)
+### 如何减轻偏见
+- 偏见可能由训练数据导致
+- 训练过程中的措施
+- 产生答案的过程中改变
+- 后处理，大模型输出答案之后，再加防御层（deepseek不生成政治相关问题）
+### AIGC
+![](https://pic-gino-prod.oss-cn-qingdao.aliyuncs.com/zhangli2025/20251030120455418-paste.png)
+![](https://pic-gino-prod.oss-cn-qingdao.aliyuncs.com/zhangli2025/20251030120630984-paste.png)
+- 让大模型在输出中加浮水印
+### 大模型越狱和注入攻击方法
+-
+## 加速模型生成速度 Speculative Decoding
+- 自回归模式使得大模型逐字生成，限制了大模型速度
+-
+![](https://pic-gino-prod.oss-cn-qingdao.aliyuncs.com/zhangli2025/20251030121915364-paste.png)
+- 就算预言模型效果非常差，一个都猜不对，此时生成速度也只是回到了完全没有预言模块的状态
+- 用空间换时间？？还是放到批次
+- 可以用多个预言模型，来增加预测对的序列的几率（预测不对的就忽略）
+- 预言模型
+  - 非自回归模型，一次性生成多个 token
+  - 蒸馏后的小模型
+  - 搜索引擎
+## 关于影像的生成式 AI
+![](https://pic-gino-prod.oss-cn-qingdao.aliyuncs.com/zhangli2025/20251030123040693-paste.png)
 
 ## 大模型应用的三种境界
 现在豆包、deepseek 模型有网页版本、手机 APP，普通用户使用起来非常方便。既然如此，为什么我们还要在豆包等大模型的基础上去开发，意义是什么，用户干嘛不去用豆包要来用我们开发的东西？？？
