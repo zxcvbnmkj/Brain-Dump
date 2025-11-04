@@ -28,3 +28,72 @@
 ES 默认只认识英文单词（按空格分词）。IK 分词器将一句中文，智能地切分成一个个有意义的词语，当用户搜索“xx”时，才能准确地找到包含这个词的文档。
 ### Kibana
 可视化界面
+## java 使用
+```
+package com.nowcoder.ut.david.web.service.search;
+
+import com.nowcoder.avatar.common.consts.Constants;
+import com.nowcoder.ut.david.entity.BiSchema;
+import com.nowcoder.ut.david.web.config.GlobalSetting;
+import org.apache.commons.lang3.StringUtils;
+import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.sort.SortOrder;
+import org.enthusa.avatar.face.type.PageModel;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.io.IOException;
+
+@Service
+// 针对 BiSchema 实体的搜索服务
+// 抽象父类封装了通用的 ES 操作逻辑（如搜索、索引创建）
+public class BiSchemaSearchService extends org.enthusa.avatar.search.AbstractSearchService<BiSchema> {
+    // 注入 GlobalSetting 实例，用于获取环境配置（如当前是生产环境还是开发环境
+    @Resource
+    private GlobalSetting globalSetting;
+
+    @Autowired
+    public BiSchemaSearchService(@Qualifier("utEsClient") RestHighLevelClient client) {
+        super(client);
+    }
+
+    @Override
+    public String getIndexName() {
+        if (StringUtils.equalsAny(globalSetting.getEnv(), Constants.ENV_PROD, Constants.ENV_PRE)) {
+            return String.format("%s_prod%d", Constants.ES_SCHEMA, 1);
+        }
+        return String.format("%s_dev%d", Constants.ES_SCHEMA, 1);
+    }
+
+    @Override
+    public IndexRequest buildIndex(BiSchema schema) {
+        return new IndexRequest(getIndexName()).id(schema.getId().toString()).source("loc", schema.getLoc(), "level", schema.getLevel(), "requestType", schema.getRequestType(), "eventName", schema.getEventName(), "title", schema.getTitle(), "description", schema.getDescription(), "status", schema.getStatus());
+    }
+
+    @Override
+    public QueryBuilder buildQuery(String query) {
+        BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
+        queryBuilder.should(QueryBuilders.termQuery("loc", query).boost(4.0f));
+        queryBuilder.should(QueryBuilders.wildcardQuery("eventName", "*" + query + "*").boost(4.0f));
+        queryBuilder.should(QueryBuilders.matchQuery("title", query).boost(2.0f));
+        queryBuilder.should(QueryBuilders.matchQuery("description", query));
+        return queryBuilder;
+    }
+
+    @Override
+    public PageModel<SearchHit> search(QueryBuilder query, int page, int pageSize) throws IOException {
+        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+        sourceBuilder.sort("status", SortOrder.ASC);
+        sourceBuilder.query(query);
+        return this.search(sourceBuilder, page, pageSize);
+    }
+}
+```
