@@ -33,7 +33,7 @@ encoded_inputs = tokenizer(
     text,
     padding=True,
     truncation=True, #当文本超出最大长度时，自动截断
-    max_length=1024,
+    max_length=512,
     return_tensors='pt'  # 返回PyTorch张量
 )
 print(encoded_inputs)
