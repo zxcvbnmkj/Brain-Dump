@@ -26,6 +26,41 @@ rsync -avz -e ssh \
 ```
 scp -P 50023 -r ubuntu@local.nowcoder.com:~/files /private/tmp/
 ```
-## 三、问题解决
-1. finalshell 等软件若检测客户端很长时间没有动作则会自动断开连接，若在训练模型且是命令行直接训练的，没有挂载，则训练会中断掉。可以参照[以下帖子](https://blog.csdn.net/weixin_69218754/article/details/132402412)的做法，去更改服务器 SSH 的配置文件，使得每隔一段时间自动发送信息。
-2. 建议使用 nohug python xx.py 方法，这样即使终端断开也依旧不影响进程
+## 工具
+### shell 解释器
+查看当前使用的解释器
+```
+echo $SHELL
+# 典型输出：
+/bin/bash
+/bin/zsh
+/bin/sh
+/bin/tcsh
+/bin/csh
+```
+#### bash：Linux 的默认解释器
+- 配置文件在 `~/.bashrc`
+#### zsh（Z Shell）: Mac 的默认解释器
+- 具有比 bash 更强大的自动补全
+- 配置文件：`~/.zshrc`
+- `Oh My Zsh` 是一个管理 Zsh 配置的 框架，提供有主题、插件。如：有 git 插件提供简化的 Git 命令
+```
+gst  # git status
+gco  # git checkout
+gl   # git pull
+```
+也可以改变主题
+```
+# 普通终端
+user@hostname ~ %
+# 使用 oh my zsh 的流行主题后
+➜  ~ git:(main) ✗
+```
+## 一些常用操作
+1. 在日志文件中查找对应的行并输出到终端 `grep "xxx" file.log`
+
+搜索内容的引号可省略
+```
+[web@ut-gpu bert_check_completed]$ grep "Validation Metrics:" finetuning.log
+2025-10-29 17:27:23,918 - INFO - Validation Metrics: 0.8765,  0.893160, 0.708582,0.770833
+```
