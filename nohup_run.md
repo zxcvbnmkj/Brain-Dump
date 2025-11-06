@@ -47,9 +47,40 @@ kill <PID>
 ```
 ## tumx
 一般我们打开一个**终端窗口**可以看做是建立了一个**会话**，关闭**窗口**时，**会话**也断开，而 `tumx` 可让窗口和会话解绑。窗口关闭但会话依旧保持。
-安装
+
+**需要先连接上远程主机，再到远程主机的终端里面执行 tmux，而不是本地主机 tmux 再连远程**
+- 安装
 ```
 brew install tmux
 ```
-
+- 启动：打开新窗口后输入 `tmux`。左下角显示 tmux 的编号，第一个启动的 tmux 窗口，编号是 0，第二个窗口的编号是 1 ......
+- 使用数字命名不好记忆，可以在启动 tmux 的时候指定会话名字
+```
+tmux new -s <session-name>
+```
+- 退出当前 Tmux 窗口，但是会话和里面的进程仍然在后台运
+```
+tmux detach
+```
+- 查看本机所有的 tmux 会话
+```
+输入：tmux ls
+0: 1 windows (created Wed Nov  5 09:44:45 2025) (attached)
+```
+- 重新接入一个会话
+```
+tmux attach -t 0    //使用会话编号
+tmux attach -t <session-name>   使用会话名称
+```
+- 杀死会话
+```
+tmux kill-session -t 0               //使用会话编号
+tmux kill-session -t <session-name>  //使用会话名称
+```
+- 切换会话
+```
+tmux switch -t 0                   // 使用会话编号
+tmux switch -t <session-name>      // 使用会话名称
+```
+- 退出：输入 `exit` 或按 `Ctrl + D`
 ## supervisor
