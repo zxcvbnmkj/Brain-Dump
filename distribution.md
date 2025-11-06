@@ -91,10 +91,10 @@ np.random.seed(1234 + local_rank * 10)
 if world_size > 1:
   assert args.batch_size % torch.cuda.device_count() == 0
   args.batch_size = args.batch_size // torch.cuda.device_count()
-  # 将进程号和GPU号对应起来
-  torch.cuda.set_device(local_rank)
   # nccl 是 NVIDIA的集合通信库，专为GPU间通信优化
   dist.init_process_group(backend="nccl")
+  # 将进程号和GPU号对应起来
+  torch.cuda.set_device(local_rank)
   # 方便用于后面的 .to(device)
   device = torch.device('cuda:{}'.format(local_rank))
 ```
@@ -189,7 +189,7 @@ if world_size > 1:
 # 显卡编号从0开始，CUDA_VISIBLE_DEVICES=1,3 说明至少 4 张卡
 CUDA_VISIBLE_DEVICES=1,3 torchrun --nproc_per_node=2 train.py
 简写：只需要指定用几张显卡就行
-torchrun --nproc-per-node=2 train.py
+torchrun --nproc_per_node=2 train.py
 ```
 ### 致命缺点
 **有N个显卡，就有N个模型副本**
