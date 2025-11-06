@@ -191,6 +191,19 @@ CUDA_VISIBLE_DEVICES=1,3 torchrun --nproc_per_node=2 train.py
 简写：只需要指定用几张显卡就行
 torchrun --nproc_per_node=2 train.py
 ```
+不同显卡上运行着不同的进程，是同一个代码创建了多个进程
+```
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|    0   N/A  N/A      3335      G   /usr/lib/xorg/Xorg                              4MiB |
+|    0   N/A  N/A   1415178      C   ...cu113-y51S2GOW-venv-py39/bin/python      22086MiB |
+|    1   N/A  N/A      3335      G   /usr/lib/xorg/Xorg                              4MiB |
+|    1   N/A  N/A   1415179      C   ...cu113-y51S2GOW-venv-py39/bin/python      22086MiB |
++-----------------------------------------------------------------------------------------+
+```
 ### 致命缺点
 **有N个显卡，就有N个模型副本**
 
