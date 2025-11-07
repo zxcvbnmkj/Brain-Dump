@@ -1,4 +1,4 @@
-# 超参数优化
+# BERT 超参数优化
 dropout = 0.1、adamw，(dp1_adamw_best_2_bert_classifier)
 ```
 Metrics by Class: (测试集)
