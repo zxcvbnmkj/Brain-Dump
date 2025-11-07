@@ -5,6 +5,9 @@
 - `input_ids` 是词在`vocab.txt`中对应的编号
 - `attention_mask` 是注意力掩码，用来标注哪些位置的词是真实的（1），哪里是填充区域（0）
 - `token_type_ids` 是句子类型ID，用于句子对任务中区别两个句子，当只有一种类型是，默认都为0。
+- [CLS] 对 BERT 模型非常重要，BERT 选取了一个没有语义的 token 来存储整个句子的综合信息，BERT 分类就是在 [CLS] 向量的基础上做的线性层降维
+- [SEP] 一般用于分割两种句子，比如 question 和 answer，让 BERT 更好理解文档结构。而不是只有判断两句话关系的任务中才可以使用，普通的基于双句的分类模型也可以用。
+- chinese-bert-wwm 这个模型分词得到的 token 几乎都是单字的
 ```
 文本: [CLS] 今天天气很好 [SEP] 适合出去玩 [SEP]
 token_type_ids: 0   0  0  0  0   0   1  1  1  1   1
@@ -166,5 +169,7 @@ else:
 model = BertForSequenceClassification.from_pretrained(f'{dir_name}/bert_classifier')
 ```
 ## 三、BERT 的特点
-1. `BERT` 可处理的最大序列长度是 `512`
-2. 如果指定了`label`会自动返回损失，不需要外部创建损失函数的实例
+1. `BERT` 可处理的最大序列长度是 `512`，在分词阶段，分词器的参数 max_lenth 的值可以大于 512，在这一步不出错，但是在 BERT 前向传播环节，如果 token 长度大于 512 会报错。
+2. 可以直接使用 transformers 库提供的 BertForSequenceClassification 类来微调，此时 指定了`label`会自动返回损失，不需要外部创建损失函数的实例。除此之外，也可以自己定义 BERT 微调模型的结果（即在 BERT 模型之后接一个 MLP等层），然后还需要自己定义损失函数。
+## 四、进阶
+BERT 的分词器可以接受两个文本参数，作为双句任务的子句1、2，还可以通过参数指定截断子句 1还是子句2
