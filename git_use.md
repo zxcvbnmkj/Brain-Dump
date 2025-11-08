@@ -116,7 +116,20 @@ git branch -d main
 ```
 
 ## 五、从头开始：利用 git 管理项目并提交到远程仓库
-
+### 准备工作：把本机 ssh 公钥添加到 github 中
+- 检查 `~/.ssh/` 路径下有没有公钥文件
+- 若没有就生成公钥
+```
+ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
+```
+- 查看公钥内容
+```
+cat ~/.ssh/id_rsa.pub
+```
+- 复制公钥内容（格式如下），添加到 github 的 settings -> SSH 栏中
+```
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDBOnoLF5uIfBBT24GaY0nXX0tMY/PtxpWAiMKd2szd2eNKkwIE9EdpoZgC9NRoqDt16K3MQaa/UPmQvbrnafhhLTVUlp09Pb1VaAaFVYRKmoOJVaYggBdqGn5WkZot3d7GZCBQ1i4lyM8HyGTf4Xgn9d4QNwmtSlLrBWeH8L7Eaaa0T9K52x5+p3TeshoKSKVGImownmPJpJDtpmUxOUBdoFieOudNHiuODslapsL3inEhMyhmSxOrnSwe37kOthaqvphe/SaNUPElzYez7C91O6v2lsKmoZTLU33ATuxHLyNxfOgY5BPRir835A+IvmxfcL9LBtzcxSWdjq2Ew/AaH5lkWE02SIdy/ydEncxhw1CsXXxDudrUk6wive7s4jHIhLEFG6EoEXjnAG2LuRt3GpIJZckRRd3NaqsCE97xq7Eohh4/Rzm7Sl/S1ZmxR2UWW9KHwoJJP+ossToItxPFJMWKIEMBcEutIa8L4fjTL+IRbRP9LG1xvR++9CdG/Av8rde62aWYU/LY6Wl7Zzz/pBVwwu6ab8Nkv/w+tN9k5uv9zqhC66Dun50S4kT/PGXBEPkHcONvlOzMFdHq0yygJ/NANQOv1/p5CaKbf3Ug3vltY2xbuL0AG+ywO3tPZU41jQZ6HzSmeJMiimPkT1El5sr3Alw0cFjim7vtNL3pDw== 2693175110@qq.com
+```
 ### (一) 新建 `.gitignore` 文件
 
 最好在初始化 git 之前创建它，它的默认值可以设置为：
