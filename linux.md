@@ -4,6 +4,17 @@
 ```
 ssh ubuntu@local.nowcoder.com -p 50023
 ```
+在 Win 的 cmd 上也可以这样连接，默认端口一般是 22
+```
+输入：ssh cszx@172.16.0.225 -p 22
+
+The authenticity of host '172.16.0.225 (172.16.0.225)' can't be established.
+ED25519 key fingerprint is SHA256:7XYIR5xOa0rYfDJamtWL6jjRsiE2YoUSEjfawuaXdhg.
+This key is not known by any other names.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+
+cszx@172.16.0.225's password:
+```
 ## 二、数据的上传与下载- - -通过`scp`
 在**本地电脑(上传与下载都是)** 中执行以下命令，其中`-r`表示上传的是文件夹，不加参数则默认为文件。
 
