@@ -1,5 +1,5 @@
 # BERT 超参数优化
-dropout = 0.1、adamw，(dp1_adamw_best_2_bert_classifier)
+**dropout = 0.1、adamw，(dp1_adamw_best_2_bert_classifier)**
 ```
 Metrics by Class: (测试集)
               precision    recall  f1-score       support
@@ -13,7 +13,7 @@ Confusion Matrix:
 0  37664   2735
 1   4341  16589
 ```
-dropout = 0.1、adam，(dp1_adam_best_2_bert_classifier)
+**dropout = 0.1、adam，(dp1_adam_best_2_bert_classifier)**
 ```
 Metrics by Class: (测试集)
               precision    recall  f1-score       support
@@ -27,7 +27,7 @@ Confusion Matrix:
 0  36007   4392
 1   3023  17907
 ```
-【最佳，选了这个】dropout = 0.5、adamw，(DDP2_best_0_bert_classifier)
+**【最佳，选了这个】dropout = 0.5、adamw，(DDP2_best_0_bert_classifier)**
 - 验证集
 ```
 Metrics by Class: (验证集)
@@ -70,7 +70,7 @@ Confusion Matrix:
 0  39332   1067
 1   6777  14153
 ```
-dropout = 0.5、adam
+**dropout = 0.5、adam**
 - 验证集
 ```
 Metrics by Class: (验证集_轮0)
